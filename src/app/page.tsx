@@ -1,101 +1,88 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import Link from 'next/link';
+import { useLists } from '@/store/useLists';
+import {ArrowRight, CirclePlus} from 'lucide-react';
+import './globals.css'
+import Modal from '@/components/Modal';
+import {useState} from "react";
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+export default function HomePage() {
+    const { lists, addList } = useLists();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalTitle, setModalTitle] = useState('');
+    const [modalDefault, setModalDefault] = useState('');
+    const [modalAction, setModalAction] = useState<(value: string) => void>(() => {});
+
+    const openModal = (
+        title: string,
+        defaultValue: string,
+        action: (value: string) => void
+    ) => {
+        setModalTitle(title);
+        setModalDefault(defaultValue);
+        setModalAction(() => action);
+        setIsModalOpen(true);
+    };
+
+    const handleCreateList = () => {
+        openModal('Enter list name', '', (value: string) => {
+            if (value.trim() !== '') {
+                addList(value);
+            }
+            setIsModalOpen(false);
+        });
+    };
+
+    return (
+        <div className="min-h-screen px-[113px] pt-[75px] flex flex-col bg-[#2C2F33]">
+            <header className="flex items-center justify-between px-8 py-[22px] border-b-2 border-[#7289DA] bg-[#23272A]">
+                <h1 className="text-white text-[24px] font-semibold">TO DO | YOUR LISTS</h1>
+                <button
+                    onClick={handleCreateList}
+                    className="cursor-pointer text-white hover:text-slate-300 flex flex-row gap-4"
+                >
+                    <CirclePlus className="h-6 w-6" />
+                    Add new List
+                </button>
+            </header>
+
+            {lists.length === 0 ? (
+                <main className="flex-grow flex items-center justify-center relative">
+                    <div className="border-4 gradient_border px-[235] py-[156] absolute opacity-20"></div>
+                    <h2 className="text-9xl font-bold text-white absolute">TO-DO LIST</h2>
+                </main>
+            ) : (
+                <main className="flex-grow py-12">
+                    <ul className="space-y-4">
+                        {lists.map((list) => (
+                            <li
+                                key={list.id}
+                                className="group relative flex items-center justify-between rounded p-4 shadow-[0_4px_4px_rgba(17,17,28,0.6)] cursor-pointer transition-transform duration-150 active:translate-y-1
+      before:content-[''] before:absolute before:top-0 before:left-0 before:w-[10px] before:h-full before:bg-[#7289DA]"
+                            >
+                                <Link href={`/list/${list.id}`} className="w-full flex items-center justify-between relative">
+        <span className="ml-4 text-lg text-white">
+          {list.title}
+        </span>
+                                    <div className="mr-4 transition-transform duration-150 group-hover:translate-x-2">
+                                        <ArrowRight className="h-6 w-6 text-white" />
+                                    </div>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </main>
+            )}
+            {isModalOpen && (
+                <Modal
+                    title={modalTitle}
+                    defaultValue={modalDefault}
+                    onSubmit={(value) => modalAction(value)}
+                    onCancel={() => setIsModalOpen(false)}
+                />
+            )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }
